@@ -1,4 +1,5 @@
-let seconds = 0;
+let startTime = null;
+let elapsed = 0;
 let interval = null;
 let isRunning = false;
 
@@ -6,27 +7,29 @@ const timeDisplay = document.getElementById("timeDisplay");
 const toggleBtn = document.getElementById("startPauseBtn");
 const resetBtn = document.getElementById("resetBtn");
 
-function formatTime(s) {
-  const hrs = Math.floor(s / 3600);
-  const mins = Math.floor((s % 3600) / 60);
-  const secs = s % 60;
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
   return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
 function updateDisplay() {
-  timeDisplay.textContent = formatTime(seconds);
+  const now = Date.now();
+  const diff = isRunning ? now - startTime + elapsed : elapsed;
+  timeDisplay.textContent = formatTime(diff);
 }
 
 // Botão único para Start/Pause
 toggleBtn.addEventListener("click", () => {
   if (!isRunning) {
-    interval = setInterval(() => {
-      seconds++;
-      updateDisplay();
-    }, 1000);
+    startTime = Date.now();
+    interval = setInterval(updateDisplay, 1000);
     toggleBtn.textContent = "⏸ Pausar";
     isRunning = true;
   } else {
+    elapsed += Date.now() - startTime;
     clearInterval(interval);
     toggleBtn.textContent = "▶ Iniciar";
     isRunning = false;
@@ -37,7 +40,8 @@ toggleBtn.addEventListener("click", () => {
 resetBtn.addEventListener("click", () => {
   clearInterval(interval);
   interval = null;
-  seconds = 0;
+  startTime = null;
+  elapsed = 0;
   isRunning = false;
   toggleBtn.textContent = "▶ Iniciar";
   updateDisplay();
